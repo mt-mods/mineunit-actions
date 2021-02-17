@@ -6,6 +6,10 @@ inputs:
     description: "Working directory for unit tests"
     required: true
     default: "."
+  luacov-exclude:
+    description: "Code coverage exclude pattern"
+    required: true
+    default: ""
   badge-name:
     description: "Code coverage badge name"
     required: true
@@ -46,6 +50,7 @@ runs:
       working-directory: "${{ inputs.working-directory }}"
       shell: bash
       run: |
+        echo 'deletestats=true;includeuntestedfiles=true;exclude={"spec/","/\.?luarocks/","/share/lua/",${{ inputs.luacov-exclude }}}'>.luacov
         $HOME/.luarocks/bin/busted -c
         $HOME/.luarocks/bin/luacov
         (printf coverage=>>$GITHUB_ENV;tail -n 2 luacov.report.out | grep ^Total | grep -o '[0-9.]\+%$'>>$GITHUB_ENV)
