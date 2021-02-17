@@ -7,50 +7,53 @@ inputs:
     required: true
     default: "."
   badge-name:
-    decription: "Code coverage badge name"
+    description: "Code coverage badge name"
     required: true
     default: "coverage"
   badge-label:
-    decription: "Code coverage badge label"
+    description: "Code coverage badge label"
     required: true
     default: "Test coverage"
   badge-color:
-    decription: "Code coverage badge color"
+    description: "Code coverage badge color"
     required: true
     default: "99CC09"
 
 outputs:
   badge-name:
-    decription: "Code coverage badge name waiting for issues/#1"
+    description: "Code coverage badge name waiting for issues/#1"
     value: ${{ steps.badge-wrapper-actions-issue-1.outputs.badge-name }}
   badge-label:
-    decription: "Code coverage badge label waiting for issues/#1"
+    description: "Code coverage badge label waiting for issues/#1"
     value: ${{ steps.badge-wrapper-actions-issue-1.outputs.badge-label }}
   badge-status:
     description: "Code coverage badge status waiting for issues/#1"
     value: ${{ steps.badge-wrapper-actions-issue-1.outputs.badge-status }}
   badge-color:
-    decription: "Code coverage badge color waiting for issues/#1"
+    description: "Code coverage badge color waiting for issues/#1"
     value: ${{ steps.badge-wrapper-actions-issue-1.outputs.badge-color }}
 
 runs:
   using: composite
   steps:
-    - run: |
+    - name: busted install
+      shell: bash
+      run: |
         sudo apt-get install -y luarocks
         luarocks install --local busted
         luarocks install --local cluacov
-      name: busted install
-    - run: |
+    - name: busted run
+      working-directory: "${{ inputs.working-directory }}"
+      shell: bash
+      run: |
         $HOME/.luarocks/bin/busted -c
         $HOME/.luarocks/bin/luacov
         (printf coverage=>>$GITHUB_ENV;tail -n 2 luacov.report.out | grep ^Total | grep -o '[0-9.]\+%$'>>$GITHUB_ENV)
         (awk -v p=0 '/^----/{p++;next}p==2{exit}p' luacov.report.out | sort -hrk4 > luacov.report.sum)
         (echo "files=$(grep -cv '\s0\.00%' luacov.report.sum)/$(wc -l<luacov.report.sum)">>$GITHUB_ENV)
-      name: busted run
-      working-directory: "${{ inputs.working-directory }}"
     - id: badge-wrapper-actions-issue-1
       name: Input wrapper while waiting for actions in actions feature
+      shell: bash
       run: |
         echo "::set-output name=badge-name::${{ inputs.badge-name }}"
         echo "::set-output name=badge-label::${{ inputs.badge-label }}"
