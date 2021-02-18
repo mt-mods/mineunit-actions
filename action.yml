@@ -28,7 +28,7 @@ inputs:
   mineunit-directory:
     description: "Mineunit install directory relative to working-directory"
     required: true
-    value: "spec/mineunit"
+    default: "spec/mineunit"
 
 outputs:
   badge-name:
