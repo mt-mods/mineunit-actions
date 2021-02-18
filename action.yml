@@ -54,9 +54,10 @@ runs:
         luarocks install --local busted
         luarocks install --local cluacov
     - name: mineunit install
+      working-directory: "${{ inputs.working-directory }}"
       shell: bash
       run: |
-        [ -f spec/mineunit/init.lua ] || git clone --depth=1 "${{ inputs.mineunit-repo }}" "${{ inputs.working-directory }}/${{ inputs.mineunit-directory }}"
+        [ -f "${{ inputs.mineunit-directory }}/init.lua" ] || git clone --depth 1 "${{ inputs.mineunit-repo }}" "${{ inputs.mineunit-directory }}"
     - name: busted run
       working-directory: "${{ inputs.working-directory }}"
       shell: bash
