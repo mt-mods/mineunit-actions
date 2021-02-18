@@ -65,7 +65,7 @@ runs:
       working-directory: "${{ inputs.working-directory }}"
       shell: bash
       run: |
-        excludes='${{ inputs.luacov-exclude && format('"{0}"',join(inputs.luacov-exclude,'","')) || '' }}'
+        excludes='${{ inputs.luacov-exclude && format('"{0}"',join(fromJSON(inputs.luacov-exclude),'","')) || '' }}'
         echo 'deletestats=true;includeuntestedfiles=true;exclude={"spec/","/\.?luarocks/","/share/lua/",'"${excludes}"'}'>.luacov
     - id: busted-run
       name: busted run
