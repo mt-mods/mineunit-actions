@@ -1,5 +1,9 @@
-name: Mineunit
+name: Mineunit runner
 description: "Execute unit tests with mineunit & busted"
+author: SX / S-S-X
+branding:
+  icon: file-text
+  color: green
 
 inputs:
   working-directory:
