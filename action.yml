@@ -7,9 +7,8 @@ inputs:
     required: true
     default: "."
   luacov-exclude:
-    description: "Code coverage exclude pattern"
-    required: true
-    default: ""
+    description: "Code coverage exclude patterns"
+    required: false
   badge-name:
     description: "Code coverage badge name"
     required: true
@@ -22,6 +21,14 @@ inputs:
     description: "Code coverage badge color"
     required: true
     default: "99CC09"
+  mineunit-repo:
+    description: "Mineunit repository location"
+    required: true
+    default: "https://github.com/mt-mods/mineunit.git"
+  mineunit-directory:
+    description: "Mineunit install directory relative to working-directory"
+    required: true
+    value: "spec/mineunit"
 
 outputs:
   badge-name:
@@ -46,13 +53,21 @@ runs:
         sudo apt-get install -y luarocks
         luarocks install --local busted
         luarocks install --local cluacov
+    - name: mineunit install
+      shell: bash
+      run: |
+        [ -f spec/mineunit/init.lua ] || git clone --depth=1 "${{ inputs.mineunit-repo }}" "${{ inputs.working-directory }}/${{ inputs.mineunit-directory }}"
     - name: busted run
       working-directory: "${{ inputs.working-directory }}"
       shell: bash
       run: |
-        echo 'deletestats=true;includeuntestedfiles=true;exclude={"spec/","/\.?luarocks/","/share/lua/",${{ inputs.luacov-exclude }}}'>.luacov
+        echo 'deletestats=true;includeuntestedfiles=true;exclude={"spec/","/\.?luarocks/","/share/lua/",${{ inputs.luacov-exclude && '"'+join(inputs.luacov-exclude,'","')+'"' || '' }}}'>.luacov
         $HOME/.luarocks/bin/busted -c
         $HOME/.luarocks/bin/luacov
+    - name: collect coverage data
+      working-directory: "${{ inputs.working-directory }}"
+      shell: bash
+      run: |
         (printf coverage=>>$GITHUB_ENV;tail -n 2 luacov.report.out | grep ^Total | grep -o '[0-9.]\+%$'>>$GITHUB_ENV)
         (awk -v p=0 '/^----/{p++;next}p==2{exit}p' luacov.report.out | sort -hrk4 > luacov.report.sum)
         (echo "files=$(grep -cv '\s0\.00%' luacov.report.sum)/$(wc -l<luacov.report.sum)">>$GITHUB_ENV)
