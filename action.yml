@@ -61,7 +61,7 @@ runs:
       working-directory: "${{ inputs.working-directory }}"
       shell: bash
       run: |
-        echo 'deletestats=true;includeuntestedfiles=true;exclude={"spec/","/\.?luarocks/","/share/lua/",${{ inputs.luacov-exclude && '"'+join(inputs.luacov-exclude,'","')+'"' || '' }}}'>.luacov
+        echo 'deletestats=true;includeuntestedfiles=true;exclude={"spec/","/\.?luarocks/","/share/lua/",${{ inputs.luacov-exclude && format('"{0}"',join(inputs.luacov-exclude,'","')) || '' }}}'>.luacov
         $HOME/.luarocks/bin/busted -c
         $HOME/.luarocks/bin/luacov
     - name: collect coverage data
