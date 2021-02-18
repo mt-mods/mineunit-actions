@@ -43,6 +43,9 @@ outputs:
   badge-color:
     description: "Code coverage badge color waiting for issues/#1"
     value: ${{ steps.badge-wrapper-actions-issue-1.outputs.badge-color }}
+  busted-stdout:
+    description: "Stdout produced during busted run"
+    value: ${{ steps.busted-run.outputs.badge-color }}
 
 runs:
   using: composite
@@ -58,13 +61,26 @@ runs:
       shell: bash
       run: |
         [ -f "${{ inputs.mineunit-directory }}/init.lua" ] || git clone --depth 1 "${{ inputs.mineunit-repo }}" "${{ inputs.mineunit-directory }}"
-    - name: busted run
+    - name: luacov configuration
       working-directory: "${{ inputs.working-directory }}"
       shell: bash
       run: |
-        echo 'deletestats=true;includeuntestedfiles=true;exclude={"spec/","/\.?luarocks/","/share/lua/",${{ inputs.luacov-exclude && format('"{0}"',join(inputs.luacov-exclude,'","')) || '' }}}'>.luacov
-        $HOME/.luarocks/bin/busted -c
-        $HOME/.luarocks/bin/luacov
+        excludes='${{ inputs.luacov-exclude && format('"{0}"',join(inputs.luacov-exclude,'","')) || '' }}'
+        echo 'deletestats=true;includeuntestedfiles=true;exclude={"spec/","/\.?luarocks/","/share/lua/",'"${excludes}"'}'>.luacov
+    - id: busted-run
+      name: busted run
+      working-directory: "${{ inputs.working-directory }}"
+      shell: bash
+      run: |
+        exec 3>&1
+        OUT="$($HOME/.luarocks/bin/busted -c | tee >(cat - >&3))"
+        exec 3>&-
+        OUT="${OUT//'%'/'%25'}";OUT="${OUT//$'\n'/'%0A'}"
+        echo "::set-output name=busted-stdout::${OUT//$'\r'/'%0D'}"
+    - name: luacov run
+      working-directory: "${{ inputs.working-directory }}"
+      shell: bash
+      run: $HOME/.luarocks/bin/luacov
     - name: collect coverage data
       working-directory: "${{ inputs.working-directory }}"
       shell: bash
