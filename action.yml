@@ -49,7 +49,7 @@ outputs:
     value: ${{ steps.badge-wrapper-actions-issue-1.outputs.badge-color }}
   busted-stdout:
     description: "Stdout produced during busted run"
-    value: ${{ steps.busted-run.outputs.badge-color }}
+    value: ${{ steps.busted-run.outputs.busted-stdout }}
 
 runs:
   using: composite
