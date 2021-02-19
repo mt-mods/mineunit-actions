@@ -60,9 +60,9 @@ runs:
     - name: busted install
       shell: bash
       run: |
-        sudo apt-get install -y luarocks
-        luarocks install --local busted
-        luarocks install --local cluacov
+        sudo apt-get install -y luarocks > /dev/null
+        luarocks install --local busted > /dev/null
+        luarocks install --local cluacov > /dev/null
     - name: mineunit install
       working-directory: "${{ inputs.working-directory }}"
       shell: bash
@@ -86,7 +86,7 @@ runs:
         exec 3>&-
         grep_eronly=(grep '0 successes / 0 failures / [1-9] error.\? / 0 pending')
         grep_nospec=(grep 'No test files found')
-        echo "::set-output name=busted-spec-missing::$(("${grep_eronly[@]}"<<<"$OUT" && "${grep_nospec[@]}"<<<"$OUT")&>/dev/null && echo true)"
+        ("${grep_eronly[@]}"<<<"$OUT" && "${grep_nospec[@]}"<<<"$OUT")&>/dev/null && echo "::set-output name=busted-spec-missing::true"
         OUT="${OUT//'%'/'%25'}";OUT="${OUT//$'\n'/'%0A'}"
         echo "::set-output name=busted-stdout::${OUT//$'\r'/'%0D'}"
         exit $ERR
