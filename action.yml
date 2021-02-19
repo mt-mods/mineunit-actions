@@ -35,6 +35,7 @@ inputs:
     default: "spec/mineunit"
 
 outputs:
+  # Generated or supplied badge properties
   badge-name:
     description: "Code coverage badge name waiting for issues/#1"
     value: ${{ steps.badge-wrapper-actions-issue-1.outputs.badge-name }}
@@ -47,12 +48,29 @@ outputs:
   badge-color:
     description: "Code coverage badge color waiting for issues/#1"
     value: ${{ steps.badge-wrapper-actions-issue-1.outputs.badge-color }}
+
+  # Busted test framework output
   busted-stdout:
     description: "Stdout produced during busted run"
     value: ${{ steps.busted-run.outputs.busted-stdout }}
   busted-spec-missing:
     description: "Set to true if no spec files found"
     value: ${{ steps.busted-run.outputs.busted-spec-missing }}
+
+  # Help content / on demand documentation
+  help-busted-spec-missing:
+    description: "Help for situation where spec files could not be loaded"
+    value: |
+      #### It seems your project is missing spec files, you should add some spec files to spec directory.
+      If you already have spec directory with `*_spec.lua` files then problem is probably `working-directory` settings.
+      `working-directory` should point to directory where `spec` directory is located.
+      
+      Example when you have tests in `/src/mystuff/spec` directory:
+      ```
+      - uses: mt-mods/mineunit-actions@master
+        with:
+          working-directory: ./src/mystuff
+      ```
 
 runs:
   using: composite
