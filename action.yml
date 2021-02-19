@@ -50,6 +50,9 @@ outputs:
   busted-stdout:
     description: "Stdout produced during busted run"
     value: ${{ steps.busted-run.outputs.busted-stdout }}
+  busted-spec-missing:
+    description: "Set to true if no spec files found"
+    value: ${{ steps.busted-run.outputs.busted-spec-missing }}
 
 runs:
   using: composite
@@ -81,6 +84,9 @@ runs:
         OUT="$($HOME/.luarocks/bin/busted -c | tee >(cat - >&3); exit ${PIPESTATUS[0]})"
         ERR=$?
         exec 3>&-
+        grep_eronly=(grep '0 successes / 0 failures / [1-9] error.\? / 0 pending')
+        grep_nospec=(grep 'No test files found')
+        echo "::set-output name=busted-spec-missing::$(("${grep_eronly[@]}"<<<"$OUT" && "${grep_nospec[@]}"<<<"$OUT")&>/dev/null && echo true)"
         OUT="${OUT//'%'/'%25'}";OUT="${OUT//$'\n'/'%0A'}"
         echo "::set-output name=busted-stdout::${OUT//$'\r'/'%0D'}"
         exit $ERR
