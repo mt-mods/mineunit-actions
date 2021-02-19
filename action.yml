@@ -76,11 +76,14 @@ runs:
       working-directory: "${{ inputs.working-directory }}"
       shell: bash
       run: |
+        set +eo pipefail
         exec 3>&1
-        OUT="$($HOME/.luarocks/bin/busted -c | tee >(cat - >&3))"
+        OUT="$($HOME/.luarocks/bin/busted -c | tee >(cat - >&3); exit ${PIPESTATUS[0]})"
+        ERR=$?
         exec 3>&-
         OUT="${OUT//'%'/'%25'}";OUT="${OUT//$'\n'/'%0A'}"
         echo "::set-output name=busted-stdout::${OUT//$'\r'/'%0D'}"
+        exit $ERR
     - name: luacov run
       working-directory: "${{ inputs.working-directory }}"
       shell: bash
