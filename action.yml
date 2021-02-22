@@ -25,10 +25,9 @@ inputs:
     description: "Code coverage badge color"
     required: true
     default: "99CC09"
-  mineunit-repo:
-    description: "Mineunit repository location"
-    required: true
-    default: "https://github.com/mt-mods/mineunit.git"
+  mineunit-version:
+    description: "Mineunit version"
+    required: false
   mineunit-directory:
     description: "Mineunit install directory relative to working-directory"
     required: true
@@ -82,10 +81,9 @@ runs:
         luarocks install --local busted > /dev/null
         luarocks install --local cluacov > /dev/null
     - name: mineunit install
-      working-directory: "${{ inputs.working-directory }}"
       shell: bash
       run: |
-        [ -f "${{ inputs.mineunit-directory }}/init.lua" ] || git clone --depth 1 "${{ inputs.mineunit-repo }}" "${{ inputs.mineunit-directory }}"
+        luarocks install --server=https://luarocks.org/dev  --local mineunit ${{ inputs.mineunit-version }}
     - name: luacov configuration
       working-directory: "${{ inputs.working-directory }}"
       shell: bash
