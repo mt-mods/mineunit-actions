@@ -101,6 +101,7 @@ runs:
         grep_eronly=(grep '0 successes / 0 failures / [1-9] error.\? / 0 pending')
         grep_nospec=(grep 'No test files found')
         ("${grep_eronly[@]}"<<<"$OUT" && "${grep_nospec[@]}"<<<"$OUT")&>/dev/null && echo "::set-output name=spec-missing::true"
+        OUT="$(sed 's/\x1B\[[0-9;]\{1,\}[A-Za-z]//g'<<<"$OUT")"
         OUT="${OUT//'%'/'%25'}";OUT="${OUT//$'\n'/'%0A'}"
         echo "::set-output name=stdout::${OUT//$'\r'/'%0D'}"
         exit $ERR
