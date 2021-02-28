@@ -9,7 +9,9 @@ Example badges:
 
 Examples in projects:
 * https://github.com/S-S-X/metatool
+* https://github.com/S-S-X/qos
 * https://github.com/mt-mods/technic
+* https://github.com/mt-mods/machine_parts
 
 Example workflow file `.github/workflows/mineunit.yml`:
 ```yaml
@@ -23,6 +25,8 @@ jobs:
     - uses: actions/checkout@v2
     - id: mineunit
       uses: mt-mods/mineunit-actions@master
+      with:
+        badge-color: "CC9909"
     - uses: RubbaBoy/BYOB@v1.2.0
       with:
         NAME: "${{ steps.mineunit.outputs.badge-name }}"
@@ -33,8 +37,20 @@ jobs:
 ```
 
 Optional parameters for `mt-mods/mineunit-actions`:
-* working-directory
-* badge-name
-* badge-label
-* badge-color
-* luacov-exclude
+
+* **`working-directory`** Working directory for unit tests
+* **`badge-name`** Code coverage badge name
+* **`badge-label`** Code coverage badge label
+* **`badge-color`** Code coverage badge color
+* **`mineunit-version`** Mineunit version
+
+Outputs:
+
+* **`steps.mineunit.outputs.badge-name`** Code coverage badge name waiting for issues/#1
+* **`steps.mineunit.outputs.badge-label`** Code coverage badge label waiting for issues/#1
+* **`steps.mineunit.outputs.badge-status`** Code coverage badge status waiting for issues/#1
+* **`steps.mineunit.outputs.badge-color`** Code coverage badge color waiting for issues/#1
+* **`steps.mineunit.outputs.mineunit-stdout`** Stdout produced during busted run
+* **`steps.mineunit.outputs.mineunit-spec-missing`** Set to true if no spec files found for busted
+* **`steps.mineunit.outputs.mineunit-report`**  Mineunit detailed test report
+* **`steps.mineunit.outputs.help-busted-spec-missing`** Help for situation where spec files could not be loaded
