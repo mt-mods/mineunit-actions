@@ -36,7 +36,7 @@ outputs:
     value: ${{ steps.badge-wrapper-actions-issue-1.outputs.badge-label }}
   badge-status:
     description: "Code coverage badge status waiting for issues/#1"
-    value: ${{ steps.badge-wrapper-actions-issue-1.outputs.badge-status }}
+    value: "${{ steps.mineunit-coverage.outputs.total }} in ${{ steps.mineunit-coverage.outputs.files }} files"
   badge-color:
     description: "Code coverage badge color waiting for issues/#1"
     value: ${{ steps.badge-wrapper-actions-issue-1.outputs.badge-color }}
@@ -52,6 +52,13 @@ outputs:
   mineunit-report:
     description: "Mineunit detailed test report"
     value: ${{ steps.mineunit-report.outputs.report }}
+
+  coverage-total:
+    description: "Total test coverage percentage"
+    value: ${{ steps.mineunit-coverage.outputs.total }}
+  coverage-files:
+    description: "Number of files tested and total number of source files"
+    value: ${{ steps.mineunit-coverage.outputs.files }}
 
   # Help content / on demand documentation
   help-busted-spec-missing:
@@ -106,18 +113,18 @@ runs:
         OUT="$(awk -v p=0 '/^----/{p++;next}p==2{exit}p' luacov.report.out)"
         OUT="${OUT//'%'/'%25'}";OUT="${OUT//$'\n'/'%0A'}"
         echo "::set-output name=report::${OUT//$'\r'/'%0D'}"
-    - name: collect coverage data
+    - id: mineunit-coverage
+      name: collect coverage data
       working-directory: "${{ inputs.working-directory }}"
       shell: bash
       run: |
-        (printf coverage=>>$GITHUB_ENV;tail -n 2 luacov.report.out | grep ^Total | grep -o '[0-9.]\+%$'>>$GITHUB_ENV)
-        (awk -v p=0 '/^----/{p++;next}p==2{exit}p' luacov.report.out | sort -hrk4 > luacov.report.sum)
-        (echo "files=$(grep -cv '\s0\.00%' luacov.report.sum)/$(wc -l<luacov.report.sum)">>$GITHUB_ENV)
+        echo "::set-output name=total::$(tail -n 2 luacov.report.out | grep ^Total | grep -o '[0-9.]\+%$')"
+        awk -v p=0 '/^----/{p++;next}p==2{exit}p' luacov.report.out | sort -hrk4 > luacov.report.sum
+        echo "::set-output name=files::$(grep -cv '\s0\.00%' luacov.report.sum)/$(wc -l<luacov.report.sum)"
     - id: badge-wrapper-actions-issue-1
       name: Input wrapper while waiting for actions in actions feature
       shell: bash
       run: |
         echo "::set-output name=badge-name::${{ inputs.badge-name }}"
         echo "::set-output name=badge-label::${{ inputs.badge-label }}"
-        echo "::set-output name=badge-status::${{ env.coverage }} in ${{ env.files }} files"
         echo "::set-output name=badge-color::${{ inputs.badge-color }}"

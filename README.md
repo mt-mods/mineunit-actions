@@ -52,5 +52,7 @@ Outputs:
 * **`steps.mineunit.outputs.badge-color`** Code coverage badge color waiting for issues/#1
 * **`steps.mineunit.outputs.mineunit-stdout`** Stdout produced during busted run
 * **`steps.mineunit.outputs.mineunit-spec-missing`** Set to true if no spec files found for busted
-* **`steps.mineunit.outputs.mineunit-report`**  Mineunit detailed test report
+* **`steps.mineunit.outputs.mineunit-report`** Mineunit detailed test report
+* **`steps.mineunit.outputs.coverage-total`** Total test coverage percentage
+* **`steps.mineunit.outputs.coverage-files`** Number of files tested and total number of source files
 * **`steps.mineunit.outputs.help-busted-spec-missing`** Help for situation where spec files could not be loaded
