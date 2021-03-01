@@ -127,8 +127,8 @@ runs:
     - name: generate badge
       shell: bash
       run: |
-        echo "only-if: [[ '${{ github.event_name }}' == 'push' && '${{ github.ref }}' == 'refs/heads/${{ production-branch }}' ]]"
-        [[ '${{ github.event_name }}' == 'push' && '${{ github.ref }}' == 'refs/heads/${{ production-branch }}' ]] || exit 0
+        echo "only-if: [[ '${{ github.event_name }}' == 'push' && '${{ github.ref }}' == 'refs/heads/${{ inputs.production-branch }}' ]]"
+        [[ '${{ github.event_name }}' == 'push' && '${{ github.ref }}' == 'refs/heads/${{ inputs.production-branch }}' ]] || exit 0
         echo "Check passed, generating badge"
         data='{"label":"${{ inputs.badge-label }}","color":"${{ inputs.badge-color }}","value":"${{ steps.mineunit-coverage.outputs.total }} in ${{ steps.mineunit-coverage.outputs.files }} files"}'
         curl -v -H "Content-Type: application/json" -d "$data" '${{ inputs.badge-service }}/${{ inputs.badge-name }}'
