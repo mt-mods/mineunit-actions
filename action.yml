@@ -22,24 +22,26 @@ inputs:
     description: "Code coverage badge color"
     required: true
     default: "99CC09"
+  badge-service:
+    description: "Badge service base URL"
+    required: true
+    default: "https://mineunit-badges.000webhostapp.com/${{ github.repository }}"
+  production-branch:
+    description: "Production branch is what is used for badge generation"
+    required: true
+    default: master
   mineunit-version:
     description: "Mineunit version"
     required: false
 
 outputs:
   # Generated or supplied badge properties
-  badge-name:
-    description: "Code coverage badge name waiting for issues/#1"
-    value: ${{ steps.badge-wrapper-actions-issue-1.outputs.badge-name }}
-  badge-label:
-    description: "Code coverage badge label waiting for issues/#1"
-    value: ${{ steps.badge-wrapper-actions-issue-1.outputs.badge-label }}
+  badge-url:
+    description: "Code coverage badge URL"
+    value: "${{ inputs.badge-service }}/${{ inputs.badge-name }}"
   badge-status:
-    description: "Code coverage badge status waiting for issues/#1"
+    description: "Code coverage badge status"
     value: "${{ steps.mineunit-coverage.outputs.total }} in ${{ steps.mineunit-coverage.outputs.files }} files"
-  badge-color:
-    description: "Code coverage badge color waiting for issues/#1"
-    value: ${{ steps.badge-wrapper-actions-issue-1.outputs.badge-color }}
 
   # Mineunit test framework output
   mineunit-stdout:
@@ -122,10 +124,12 @@ runs:
         echo "::set-output name=total::$(tail -n 2 luacov.report.out | grep ^Total | grep -o '[0-9.]\+%$')"
         awk -v p=0 '/^----/{p++;next}p==2{exit}p' luacov.report.out | sort -hrk4 > luacov.report.sum
         echo "::set-output name=files::$(grep -cv '\s0\.00%' luacov.report.sum)/$(wc -l<luacov.report.sum)"
-    - id: badge-wrapper-actions-issue-1
-      name: Input wrapper while waiting for actions in actions feature
+    - name: generate badge
       shell: bash
       run: |
-        echo "::set-output name=badge-name::${{ inputs.badge-name }}"
-        echo "::set-output name=badge-label::${{ inputs.badge-label }}"
-        echo "::set-output name=badge-color::${{ inputs.badge-color }}"
+        echo "only-if: [[ '${{ github.event_name }}' == 'push' && '${{ github.ref }}' == 'refs/heads/${{ production-branch }}' ]]"
+        [[ '${{ github.event_name }}' == 'push' && '${{ github.ref }}' == 'refs/heads/${{ production-branch }}' ]] || exit 0
+        echo "Check passed, generating badge"
+        data='{"label":"${{ inputs.badge-label }}","color":"${{ inputs.badge-color }}","value":"${{ steps.mineunit-coverage.outputs.total }} in ${{ steps.mineunit-coverage.outputs.files }} files"}'
+        curl -v -H "Content-Type: application/json" -d "$data" '${{ inputs.badge-service }}/${{ inputs.badge-name }}'
+        echo "Badge URL: ${{ inputs.badge-service }}/${{ inputs.badge-name }}"
