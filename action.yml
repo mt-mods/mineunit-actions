@@ -37,9 +37,9 @@ inputs:
     default: master
 
   badge-purge-with:
-    description: "Purge GitHub Camo caches for links in this https://github.com/ path"
+    description: "Purge GitHub Camo links in https://github.com/ path, %s substituted for production-branch"
     required: true
-    default: "${{ github.repository }}/blob/${{ inputs.production-branch }}/README.md"
+    default: "${{ github.repository }}/blob/%s/README.md"
 
   mineunit-version:
     description: "Mineunit version"
@@ -139,7 +139,7 @@ runs:
       shell: bash
       run: |
         BADGEURL='${{ inputs.badge-service }}/${{ inputs.badge-name }}'
-        CAMO_CHECK_URL='https://github.com/${{ inputs.badge-purge-with }}'
+        CAMO_CHECK_URL="$(printf 'https://github.com/${{ inputs.badge-purge-with }}' '${{ inputs.production-branch }}')"
         CURL=(curl -fsSm 30 -D /dev/stderr --max-redirs 8 --retry-delay 9 --retry 3 --retry-connrefused)
         CAMO=(grep -o '<img[^>]\+src="https://camo.githubusercontent.com/[^>]*data-canonical-src="'"$BADGEURL"'"[^>]\+>')
         LINKS=(sed -rn 's/^.*\ssrc="([^"<>]+)".*$/\1/p')
@@ -152,7 +152,7 @@ runs:
         echo "Badge URL: ${BADGEURL}"
         [[ '${{ inputs.badge-purge-with }}' == '' ]] && exit 0
         echo
-        echo 'Purging Camo caches based on ${{ inputs.badge-purge-with }} links'
+        echo "Purging Camo caches based on $CAMO_CHECK_URL links"
         echo
         "${CURL[@]}" "$CAMO_CHECK_URL" | "${CAMO[@]}" | "${LINKS[@]}" | sort -u > camo.purge.uri
         echo
