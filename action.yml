@@ -26,6 +26,9 @@ inputs:
     description: "Badge service base URL"
     required: true
     default: "https://mineunit-badges.000webhostapp.com/${{ github.repository }}"
+  badge-secret:
+    description: "Badge service API key"
+    required: true
   production-branch:
     description: "Production branch is what is used for badge generation"
     required: true
@@ -129,7 +132,6 @@ runs:
       run: |
         echo "only-if: [[ '${{ github.event_name }}' == 'push' && '${{ github.ref }}' == 'refs/heads/${{ inputs.production-branch }}' ]]"
         [[ '${{ github.event_name }}' == 'push' && '${{ github.ref }}' == 'refs/heads/${{ inputs.production-branch }}' ]] || exit 0
-        echo "Check passed, generating badge"
         data='{"label":"${{ inputs.badge-label }}","color":"${{ inputs.badge-color }}","value":"${{ steps.mineunit-coverage.outputs.total }} in ${{ steps.mineunit-coverage.outputs.files }} files"}'
-        curl -v -H "Content-Type: application/json" -d "$data" '${{ inputs.badge-service }}/${{ inputs.badge-name }}'
+        curl -H "Content-Type: application/json" -d "$data" '${{ inputs.badge-service }}/${{ inputs.badge-name }}/${{ inputs.badge-secret }}'
         echo "Badge URL: ${{ inputs.badge-service }}/${{ inputs.badge-name }}"
