@@ -29,7 +29,7 @@ inputs:
     default: "https://mineunit-badges.000webhostapp.com/${{ github.repository }}"
   badge-secret:
     description: "Badge service API key"
-    required: true
+    required: false
 
   production-branch:
     description: "Production branch is what is used for badge generation"
@@ -144,18 +144,16 @@ runs:
         CAMO=(grep -o '<img[^>]\+src="https://camo.githubusercontent.com/[^>]*data-canonical-src="'"$BADGEURL"'"[^>]\+>')
         LINKS=(sed -rn 's/^.*\ssrc="([^"<>]+)".*$/\1/p')
         echo
-        echo "only-if: [[ '${{ github.event_name }}' == 'push' && '${{ github.ref }}' == 'refs/heads/${{ inputs.production-branch }}' ]]"
-        [[ '${{ github.event_name }}' == 'push' && '${{ github.ref }}' == 'refs/heads/${{ inputs.production-branch }}' ]] || exit 0
+        echo "only-if: [[ '${{ github.event_name }}' == 'push' && '${{ github.ref }}' == 'refs/heads/${{ inputs.production-branch }}' && '${{ inputs.badge-secret }}' =~ ^[^\ ]$ ]]"
+        [[ '${{ github.event_name }}' == 'push' && '${{ github.ref }}' == 'refs/heads/${{ inputs.production-branch }}' && '${{ inputs.badge-secret }}' =~ ^[^\ ]$ ]] || exit 0
         echo
         data='{"label":"${{ inputs.badge-label }}","color":"${{ inputs.badge-color }}","value":"${{ steps.mineunit-coverage.outputs.total }} in ${{ steps.mineunit-coverage.outputs.files }} files"}'
         "${CURL[@]}" -H "Content-Type: application/json" -d "$data" "${BADGEURL}/${{ inputs.badge-secret }}"
         echo "Badge URL: ${BADGEURL}"
         [[ '${{ inputs.badge-purge-with }}' == '' ]] && exit 0
-        echo
         echo "Purging Camo caches based on $CAMO_CHECK_URL links"
         echo
         "${CURL[@]}" "$CAMO_CHECK_URL" | "${CAMO[@]}" | "${LINKS[@]}" | sort -u > camo.purge.uri
-        echo
         echo "Purging cache for $(wc -l < camo.purge.uri) Camo entries"
         echo
         xargs -ra camo.purge.uri "${CURL[@]}" -X PURGE
