@@ -22,24 +22,37 @@ inputs:
     description: "Code coverage badge color"
     required: true
     default: "99CC09"
+
+  badge-service:
+    description: "Badge service base URL"
+    required: true
+    default: "https://mineunit-badges.000webhostapp.com/${{ github.repository }}"
+  badge-secret:
+    description: "Badge service API key"
+    required: false
+
+  production-branch:
+    description: "Production branch is what is used for badge generation"
+    required: true
+    default: master
+
+  badge-purge-with:
+    description: "Purge GitHub Camo links in https://github.com/ path, %s substituted for production-branch"
+    required: true
+    default: "${{ github.repository }}/blob/%s/README.md"
+
   mineunit-version:
     description: "Mineunit version"
     required: false
 
 outputs:
   # Generated or supplied badge properties
-  badge-name:
-    description: "Code coverage badge name waiting for issues/#1"
-    value: ${{ steps.badge-wrapper-actions-issue-1.outputs.badge-name }}
-  badge-label:
-    description: "Code coverage badge label waiting for issues/#1"
-    value: ${{ steps.badge-wrapper-actions-issue-1.outputs.badge-label }}
+  badge-url:
+    description: "Code coverage badge URL"
+    value: "${{ inputs.badge-service }}/${{ inputs.badge-name }}"
   badge-status:
-    description: "Code coverage badge status waiting for issues/#1"
+    description: "Code coverage badge status"
     value: "${{ steps.mineunit-coverage.outputs.total }} in ${{ steps.mineunit-coverage.outputs.files }} files"
-  badge-color:
-    description: "Code coverage badge color waiting for issues/#1"
-    value: ${{ steps.badge-wrapper-actions-issue-1.outputs.badge-color }}
 
   # Mineunit test framework output
   mineunit-stdout:
@@ -122,10 +135,25 @@ runs:
         echo "::set-output name=total::$(tail -n 2 luacov.report.out | grep ^Total | grep -o '[0-9.]\+%$')"
         awk -v p=0 '/^----/{p++;next}p==2{exit}p' luacov.report.out | sort -hrk4 > luacov.report.sum
         echo "::set-output name=files::$(grep -cv '\s0\.00%' luacov.report.sum)/$(wc -l<luacov.report.sum)"
-    - id: badge-wrapper-actions-issue-1
-      name: Input wrapper while waiting for actions in actions feature
+    - name: generate badge
       shell: bash
       run: |
-        echo "::set-output name=badge-name::${{ inputs.badge-name }}"
-        echo "::set-output name=badge-label::${{ inputs.badge-label }}"
-        echo "::set-output name=badge-color::${{ inputs.badge-color }}"
+        BADGEURL='${{ inputs.badge-service }}/${{ inputs.badge-name }}'
+        CAMO_CHECK_URL="$(printf 'https://github.com/${{ inputs.badge-purge-with }}' '${{ inputs.production-branch }}')"
+        CURL=(curl -fsSm 30 -D /dev/stderr --max-redirs 8 --retry-delay 9 --retry 3 --retry-connrefused)
+        CAMO=(grep -o '<img[^>]\+src="https://camo.githubusercontent.com/[^>]*data-canonical-src="'"$BADGEURL"'"[^>]\+>')
+        LINKS=(sed -rn 's/^.*\ssrc="([^"<>]+)".*$/\1/p')
+        echo
+        echo "only-if: [[ '${{ github.event_name }}' == 'push' && '${{ github.ref }}' == 'refs/heads/${{ inputs.production-branch }}' && '${{ inputs.badge-secret }}' =~ ^[^\ ]+$ ]]"
+        [[ '${{ github.event_name }}' == 'push' && '${{ github.ref }}' == 'refs/heads/${{ inputs.production-branch }}' && '${{ inputs.badge-secret }}' =~ ^[^\ ]+$ ]] || exit 0
+        echo
+        data='{"label":"${{ inputs.badge-label }}","color":"${{ inputs.badge-color }}","value":"${{ steps.mineunit-coverage.outputs.total }} in ${{ steps.mineunit-coverage.outputs.files }} files"}'
+        "${CURL[@]}" -H "Content-Type: application/json" -d "$data" "${BADGEURL}/${{ inputs.badge-secret }}"
+        echo "Badge URL: ${BADGEURL}"
+        [[ '${{ inputs.badge-purge-with }}' == '' ]] && exit 0
+        echo "Purging Camo caches based on $CAMO_CHECK_URL links"
+        echo
+        "${CURL[@]}" "$CAMO_CHECK_URL" | "${CAMO[@]}" | "${LINKS[@]}" | sort -u > camo.purge.uri
+        echo "Purging cache for $(wc -l < camo.purge.uri) Camo entries"
+        echo
+        xargs -ra camo.purge.uri "${CURL[@]}" -X PURGE
