@@ -111,7 +111,7 @@ runs:
       shell: bash
       run: |
         $HOME/.luarocks/bin/mineunit -r
-        OUT="$(awk -v p=0 '/^----/{p++;next}p==2{exit}p' luacov.report.out)"
+        OUT="$(awk -v p=0 '/^----/{p++;next}p==2{exit}p' luacov.report.out | sort -hrk4)"
         OUT="${OUT//'%'/'%25'}";OUT="${OUT//$'\n'/'%0A'}"
         echo "::set-output name=report::${OUT//$'\r'/'%0D'}"
     - id: mineunit-coverage
