@@ -10,6 +10,9 @@ inputs:
     description: "Working directory for unit tests"
     required: true
     default: "."
+  mineunit-args:
+    description: "Additional arguments for mineunit"
+    required: false
   badge-name:
     description: "Code coverage badge name"
     required: true
@@ -95,7 +98,7 @@ runs:
       run: |
         set +eo pipefail
         exec 3>&1
-        OUT="$($HOME/.luarocks/bin/mineunit -c | tee >(cat - >&3); exit ${PIPESTATUS[0]})"
+        OUT="$($HOME/.luarocks/bin/mineunit -c ${{ inputs.mineunit-args }} | tee >(cat - >&3); exit ${PIPESTATUS[0]})"
         ERR=$?
         exec 3>&-
         grep_eronly=(grep '0 successes / 0 failures / [1-9] error.\? / 0 pending')
