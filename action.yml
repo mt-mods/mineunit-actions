@@ -100,8 +100,7 @@ runs:
         grep_nospec=(grep 'No test files found')
         ("${grep_eronly[@]}"<<<"$OUT" && "${grep_nospec[@]}"<<<"$OUT")&>/dev/null && echo "spec-missing=true" >> $GITHUB_OUTPUT
         OUT="$(sed 's/\x1B\[[0-9;]\{1,\}[A-Za-z]//g'<<<"$OUT")"
-        OUT="${OUT//'%'/'%25'}";OUT="${OUT//$'\n'/'%0A'}"
-        echo "stdout=${OUT//$'\r'/'%0D'}" >> $GITHUB_OUTPUT
+        printf 'stdout<<END-OF-MINEUNIT-CONTENT\n%s\nEND-OF-MINEUNIT-CONTENT' "${OUT}" >> $GITHUB_OUTPUT
         exit $ERR
     - id: mineunit-report
       name: mineunit coverage report
@@ -110,8 +109,7 @@ runs:
       run: |
         $HOME/.luarocks/bin/mineunit -r
         OUT="$(awk -v p=0 '/^----/{p++;next}p==2{exit}p' luacov.report.out | sort -hrk4)"
-        OUT="${OUT//'%'/'%25'}";OUT="${OUT//$'\n'/'%0A'}"
-        echo "report=${OUT//$'\r'/'%0D'}" >> $GITHUB_OUTPUT
+        printf 'report<<END-OF-MINEUNIT-CONTENT\n%s\nEND-OF-MINEUNIT-CONTENT' "${OUT}" >> $GITHUB_OUTPUT
     - id: mineunit-coverage
       name: collect coverage data
       working-directory: "${{ inputs.working-directory }}"
