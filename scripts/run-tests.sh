@@ -1,7 +1,7 @@
 #!/bin/bash
+set +eo pipefail
 
 # Run tests, collect output and save return code
-set +eo pipefail
 exec 3>&1
 OUT="$(mineunit -c ${INPUT_MINEUNIT_ARGS} | tee >(cat - >&3); exit ${PIPESTATUS[0]})"
 ERR=$?

@@ -1,4 +1,5 @@
 #!/bin/bash
+set -eo pipefail
 
 # Generate luacov report and write it to output
 mineunit -r
