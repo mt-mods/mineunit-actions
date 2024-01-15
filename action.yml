@@ -28,6 +28,10 @@ inputs:
   mineunit-version:
     description: "Mineunit version"
     required: false
+  lua-version:
+    description: "Lua version: lua51 or luajit"
+    required: false
+    default: "lua51"
 
 outputs:
   # Generated or supplied badge properties
@@ -71,4 +75,4 @@ outputs:
 
 runs:
   using: docker
-  image: Dockerfile
+  image: Dockerfile.${{ inputs.lua-version }}

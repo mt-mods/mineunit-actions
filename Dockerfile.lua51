@@ -1,4 +1,4 @@
-FROM mineunit/mineunit:latest
+FROM mineunit/mineunit:lua51
 
 USER root
 ENV USER=root
