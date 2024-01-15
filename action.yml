@@ -30,7 +30,7 @@ inputs:
     required: false
   lua-version:
     description: "Lua version: lua51 or luajit"
-    required: false
+    required: true
     default: "lua51"
 
 outputs:
