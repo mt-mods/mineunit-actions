@@ -75,4 +75,4 @@ outputs:
 
 runs:
   using: docker
-  image: Dockerfile.${{ inputs.lua-version }}
+  image: Dockerfile.${{ github.event.inputs.lua-version }}
