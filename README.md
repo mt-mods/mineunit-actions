@@ -41,10 +41,11 @@ jobs:
 Optional parameters for `mt-mods/mineunit-actions`:
 
 * **`working-directory`** Working directory for unit tests, can be used when testing modpacks or multiple mods.
+* **`mineunit-args`** Mineunit extra arguments, for example to specify `--engine-version 5.7.0`.
+* **`coverage`** Luacov code coverage. Enabled by default.
 * **`badge-name`** Code coverage badge name.
 * **`badge-label`** Code coverage badge label.
 * **`badge-color`** Code coverage badge color.
-* **`mineunit-args`** Mineunit extra arguments, for example to specify `--engine-version 5.7.0`.
 * **`mineunit-version`** Mineunit version.
 
 Outputs:

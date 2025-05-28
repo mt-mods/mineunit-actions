@@ -13,6 +13,10 @@ inputs:
   mineunit-args:
     description: "Additional arguments for mineunit"
     required: false
+  coverage:
+    description: "Enable code coverage"
+    required: true
+    default: true
   badge-name:
     description: "Code coverage badge name"
     required: true
