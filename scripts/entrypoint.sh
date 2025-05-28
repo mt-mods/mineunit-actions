@@ -11,6 +11,8 @@ ERR=$?
 
 if (($ERR != 0)); then
     exit $ERR
+elif [[ "$INPUT_COVERAGE" != "true" ]]; then
+    exit 0
 fi
 
 echo "Generating report in $(pwd)"

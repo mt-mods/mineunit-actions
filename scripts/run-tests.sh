@@ -1,9 +1,15 @@
 #!/bin/bash
 set +eo pipefail
 
+# Configure (todo: kind of backwards currently)
+BUILTIN_ARGS=(-c)
+if [[ "$INPUT_COVERAGE" != "true" ]]; then
+    BUILTIN_ARGS=()
+fi
+
 # Run tests, collect output and save return code
 exec 3>&1
-OUT="$(mineunit -c ${INPUT_MINEUNIT_ARGS} | tee >(cat - >&3); exit ${PIPESTATUS[0]})"
+OUT="$(mineunit "${BUILTIN_ARGS[@]}" ${INPUT_MINEUNIT_ARGS} | tee >(cat - >&3); exit ${PIPESTATUS[0]})"
 ERR=$?
 exec 3>&-
 
